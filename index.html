@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Spin Geometry to Eisenstein Arithmetic</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Fira+Code:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0d0b09;
+    --bg-elev: #171310;
+    --bg-card: #1e1a15;
+    --text: #e8e0d4;
+    --text-dim: #b0a594;
+    --text-muted: #7a6e5e;
+    /* Geometry side: warm */
+    --warm: #e8913a;
+    --warm-dim: #c06a1a;
+    --warm-soft: #f5c98a;
+    --warm-bg: rgba(232,145,58,0.06);
+    /* Arithmetic side: cool */
+    --cool: #34d3b8;
+    --cool-dim: #1a9e87;
+    --cool-soft: #7df0d8;
+    --cool-bg: rgba(52,211,184,0.06);
+    /* Shared */
+    --amber: #fbbf24;
+    --rose: #fb7185;
+    --violet: #a78bfa;
+    --border: #2a2318;
+    --border-light: #3d3426;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'Instrument Sans', sans-serif;
+    --mono: 'Fira Code', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* ══ HERO ══ */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 50% 40% at 30% 50%, rgba(232,145,58,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 70% 50%, rgba(52,211,184,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* Central convergence line */
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 20%; bottom: 20%;
+    left: 50%;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(251,191,36,0.2), transparent);
+    pointer-events: none;
+  }
+
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.3s forwards;
+  }
+  .hero-label .hl-warm { color: var(--warm); }
+  .hero-label .hl-cool { color: var(--cool); }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 6vw, 4.5rem);
+    font-weight: 400;
+    line-height: 1.12;
+    max-width: 20ch;
+    opacity: 0;
+    animation: fadeUp 1s 0.5s forwards;
+  }
+  .hero h1 .h1-warm { color: var(--warm); }
+  .hero h1 .h1-cool { color: var(--cool); }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    max-width: 58ch;
+    margin-top: 1.5rem;
+    font-style: italic;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.9s forwards;
+  }
+
+  .hero-meta {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.2s forwards;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    opacity: 0;
+    animation: fadeUp 0.6s 2s forwards, pulse 2.5s 3s infinite;
+  }
+  .scroll-hint::after { content: '↓'; display: block; text-align: center; margin-top: 0.3rem; font-size: 1rem; }
+
+  /* ══ SECTIONS ══ */
+  .section {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s, transform 0.8s;
+  }
+  .section.visible { opacity: 1; transform: translateY(0); }
+
+  .section-wide {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s, transform 0.8s;
+  }
+  .section-wide.visible { opacity: 1; transform: translateY(0); }
+
+  h2 { font-family: var(--serif); font-size: clamp(1.7rem, 4vw, 2.6rem); margin-bottom: 1.5rem; line-height: 1.15; }
+  h3 { font-family: var(--serif); font-size: 1.3rem; margin: 2rem 0 0.75rem; }
+  p { margin-bottom: 1.25rem; }
+  .lead { font-size: 1.1rem; line-height: 1.85; }
+  strong.warm { color: var(--warm); font-weight: 500; }
+  strong.cool { color: var(--cool); font-weight: 500; }
+  strong { color: var(--amber); font-weight: 500; }
+  code { font-family: var(--mono); font-size: 0.83em; background: var(--bg-card); padding: 0.12em 0.4em; border-radius: 4px; color: var(--amber); }
+
+  /* ══ PULLQUOTE ══ */
+  .pullquote {
+    font-family: var(--serif);
+    font-size: clamp(1.3rem, 3vw, 1.9rem);
+    font-style: italic;
+    text-align: center;
+    padding: 3rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.4;
+    position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s, transform 0.8s;
+  }
+  .pullquote.visible { opacity: 1; transform: translateY(0); }
+  .pullquote::before, .pullquote::after {
+    content: '';
+    position: absolute;
+    left: 15%; right: 15%;
+    height: 1px;
+  }
+  .pullquote::before { top: 0; background: linear-gradient(90deg, transparent, var(--warm), var(--cool), transparent); opacity: 0.3; }
+  .pullquote::after { bottom: 0; background: linear-gradient(90deg, transparent, var(--warm), var(--cool), transparent); opacity: 0.3; }
+
+  /* ══ THE PIPELINE — the centrepiece ══ */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 2rem 0;
+  }
+
+  .pipe-row {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    align-items: stretch;
+    min-height: 100px;
+  }
+  @media (max-width: 700px) {
+    .pipe-row { grid-template-columns: 1fr 40px 1fr; }
+  }
+
+  .pipe-cell {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.6s, transform 0.6s;
+  }
+  .pipe-cell.warm-cell {
+    background: var(--warm-bg);
+    border-left: 2px solid rgba(232,145,58,0.25);
+    border-radius: 8px 0 0 8px;
+    transform: translateX(-20px);
+    text-align: right;
+  }
+  .pipe-cell.cool-cell {
+    background: var(--cool-bg);
+    border-right: 2px solid rgba(52,211,184,0.25);
+    border-radius: 0 8px 8px 0;
+    transform: translateX(20px);
+  }
+  .pipe-cell.revealed { opacity: 1; transform: translateX(0); }
+
+  .pipe-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .pipe-center::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: linear-gradient(180deg, var(--warm), var(--amber), var(--cool));
+    opacity: 0.3;
+    transform: translateX(-1px);
+  }
+
+  .pipe-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    z-index: 1;
+    position: relative;
+  }
+  .pipe-icon.shared {
+    background: rgba(251,191,36,0.15);
+    border: 1px solid rgba(251,191,36,0.3);
+    color: var(--amber);
+  }
+
+  .pipe-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .pipe-title.warm-t { color: var(--warm); }
+  .pipe-title.cool-t { color: var(--cool); }
+
+  .pipe-main {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .pipe-detail {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+    line-height: 1.5;
+  }
+
+  /* Arrow between rows */
+  .pipe-arrow {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    height: 30px;
+  }
+  @media (max-width: 700px) {
+    .pipe-arrow { grid-template-columns: 1fr 40px 1fr; }
+  }
+  .pipe-arrow-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+  .pipe-arrow-center::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: linear-gradient(180deg, var(--warm), var(--cool));
+    opacity: 0.15;
+    transform: translateX(-1px);
+  }
+  .pipe-arrow-glyph {
+    font-size: 1rem;
+    color: var(--amber);
+    opacity: 0.5;
+    z-index: 1;
+  }
+
+  /* ══ STAGE LABEL ══ */
+  .stage-label {
+    text-align: center;
+    margin: 3rem 0 1rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    opacity: 0.6;
+  }
+
+  /* ══ DUAL CARDS ══ */
+  .dual-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  @media (max-width: 640px) { .dual-row { grid-template-columns: 1fr; } }
+
+  .dual-card {
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.7s, transform 0.7s;
+  }
+  .dual-card.from-left { transform: translateX(-30px); }
+  .dual-card.from-right { transform: translateX(30px); }
+  .dual-card.revealed { opacity: 1; transform: translateX(0); }
+
+  .dual-card.warm-card {
+    background: var(--warm-bg);
+    border: 1px solid rgba(232,145,58,0.15);
+  }
+  .dual-card.warm-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--warm), var(--warm-soft));
+  }
+
+  .dual-card.cool-card {
+    background: var(--cool-bg);
+    border: 1px solid rgba(52,211,184,0.15);
+  }
+  .dual-card.cool-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--cool), var(--cool-soft));
+  }
+
+  .dual-card h4 { font-family: var(--serif); font-size: 1.1rem; margin-bottom: 0.75rem; }
+
+  .dual-formula {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    padding: 0.6rem;
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    text-align: center;
+    margin: 0.5rem 0;
+  }
+
+  .dual-list {
+    list-style: none;
+    padding: 0;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+  }
+  .dual-list li {
+    padding: 0.25rem 0;
+    padding-left: 1.2em;
+    text-indent: -1.2em;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .dual-card.revealed .dual-list li { opacity: 1; transform: translateY(0); }
+  .dual-card.revealed .dual-list li:nth-child(1) { transition-delay: 0.2s; }
+  .dual-card.revealed .dual-list li:nth-child(2) { transition-delay: 0.35s; }
+  .dual-card.revealed .dual-list li:nth-child(3) { transition-delay: 0.5s; }
+  .dual-card.revealed .dual-list li:nth-child(4) { transition-delay: 0.65s; }
+  .dual-list li::before { content: '→ '; color: var(--text-muted); }
+
+  /* ══ HIGHLIGHT BOX ══ */
+  .highlight-box {
+    background: var(--bg-elev);
+    border-left: 3px solid var(--amber);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .highlight-box.warm { border-left-color: var(--warm); }
+  .highlight-box.cool { border-left-color: var(--cool); }
+
+  /* ══ MATH BLOCK ══ */
+  .math-block {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin: 2rem 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    line-height: 2;
+    position: relative;
+    overflow: hidden;
+  }
+  .math-block::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--warm), var(--cool), transparent);
+  }
+
+  .math-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 0.75rem;
+  }
+
+  .math-big { font-size: 1.3rem; color: var(--amber); font-weight: 500; }
+
+  /* ══ EULER FACTOR VISUALISATION ══ */
+  .euler-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.75rem;
+    margin: 2rem 0;
+  }
+
+  .euler-cell {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .euler-cell:hover { transform: translateY(-2px); }
+  .euler-cell.split { border-color: rgba(52,211,184,0.3); }
+  .euler-cell.inert { border-color: rgba(232,145,58,0.3); }
+  .euler-cell.ramified { border-color: rgba(251,191,36,0.3); }
+
+  .euler-p { font-family: var(--mono); font-size: 1.3rem; font-weight: 500; }
+  .euler-type { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.25rem; }
+  .euler-chi { font-family: var(--mono); font-size: 0.8rem; margin-top: 0.2rem; }
+
+  /* ══ CONVERGENCE BOX ══ */
+  .converge-box {
+    background: linear-gradient(135deg, rgba(232,145,58,0.05), rgba(52,211,184,0.05));
+    border: 1px solid rgba(251,191,36,0.15);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin: 2rem 0;
+    position: relative;
+  }
+  .converge-tag {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+    background: rgba(251,191,36,0.1);
+    padding: 0.2em 0.8em;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+  .converge-box h3 { color: var(--amber); margin-top: 0; }
+
+  /* ══ IDEMPOTENT SPLIT VIZ ══ */
+  .split-viz {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+  }
+
+  .split-block {
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    min-width: 120px;
+  }
+  .split-block.pos { background: rgba(232,145,58,0.12); border: 1px solid rgba(232,145,58,0.25); color: var(--warm); }
+  .split-block.neg { background: rgba(52,211,184,0.12); border: 1px solid rgba(52,211,184,0.25); color: var(--cool); }
+  .split-block.whole { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); color: var(--amber); }
+
+  .split-op { font-size: 1.5rem; color: var(--text-muted); }
+
+  /* ══ FOOTER ══ */
+  footer {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  footer a { color: var(--warm); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ══ ANIMATIONS ══ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════ HERO ════════ -->
+<section class="hero">
+  <div class="hero-label">
+    <span class="hl-warm">Spin Geometry</span> &nbsp;·&nbsp; <span class="hl-cool">Eisenstein Arithmetic</span>
+  </div>
+  <h1>One <span class="h1-warm">Quadratic</span> Architecture, Two <span class="h1-cool">Worlds</span></h1>
+  <p class="hero-sub">
+    A quadratic form generates an involution. The involution yields spectral data.
+    The spectral data assembles into a global invariant. This mechanism is the same
+    in spin geometry and in quadratic number theory.
+  </p>
+  <p class="hero-meta">Lee McCulloch-James · Dwight School London · 2026</p>
+  <div class="scroll-hint">SCROLL TO EXPLORE</div>
+</section>
+
+<!-- ════════ ACT 1: THE THESIS ════════ -->
+<section class="section" data-anim>
+  <h2>The shared architecture</h2>
+  <p class="lead">
+    In differential geometry, a metric on a 4-manifold produces the Hodge star operator — an involution
+    whose ±1 eigenspaces decompose curvature into self-dual and anti-self-dual sectors. Integration over
+    the manifold yields the signature: a topological invariant.
+  </p>
+  <p>
+    In number theory, a norm form on a quadratic field produces Galois conjugation — an involution
+    whose spectral trace at each prime is the quadratic character χ(p) = ±1. The Euler product assembles
+    this prime-by-prime data into the Dedekind zeta function, and the class number formula extracts
+    a discrete invariant.
+  </p>
+  <p>
+    The objects are entirely different. But the <strong>mechanism</strong> is the same.
+  </p>
+</section>
+
+<div class="pullquote" data-anim>
+  <span style="color:var(--warm)">Quadratic form</span> → Involution → Local spectral data → <span style="color:var(--cool)">Global invariant</span>
+</div>
+
+<!-- ════════ ACT 2: THE PIPELINE ════════ -->
+<section class="section-wide" data-anim>
+  <h2>The four-stage pipeline</h2>
+  <p style="max-width:700px">
+    Every row below shows the same structural step, realised differently in geometry (left, warm)
+    and arithmetic (right, cool). The central spine marks the shared algebraic principle.
+  </p>
+
+  <div class="pipeline" id="pipeline">
+    <!-- Stage 1: Quadratic Form -->
+    <div class="stage-label">Stage 1 · Source</div>
+    <div class="pipe-row">
+      <div class="pipe-cell warm-cell" data-pipe>
+        <div class="pipe-title warm-t">Geometry</div>
+        <div class="pipe-main" style="color:var(--warm)">Riemannian metric g</div>
+        <div class="pipe-detail">Nondegenerate quadratic form on tangent spaces. Generates the Clifford algebra Cl(V, g).</div>
+      </div>
+      <div class="pipe-center">
+        <div class="pipe-icon shared">Q</div>
+      </div>
+      <div class="pipe-cell cool-cell" data-pipe>
+        <div class="pipe-title cool-t">Arithmetic</div>
+        <div class="pipe-main" style="color:var(--cool)">Norm form N(α) = αα̅</div>
+        <div class="pipe-detail">a² − ab + b² for ℤ[ω]. Measures squared length on the hexagonal lattice.</div>
+      </div>
+    </div>
+
+    <div class="pipe-arrow"><div></div><div class="pipe-arrow-center"><span class="pipe-arrow-glyph">↓</span></div><div></div></div>
+
+    <!-- Stage 2: Involution -->
+    <div class="stage-label">Stage 2 · Involution</div>
+    <div class="pipe-row">
+      <div class="pipe-cell warm-cell" data-pipe>
+        <div class="pipe-title warm-t">Geometry</div>
+        <div class="pipe-main" style="color:var(--warm)">Hodge ∗ / chirality γ₅</div>
+        <div class="pipe-detail">∗² = 1 on middle-degree forms. γ₅² = 1 on spinors. Both involutions generated by the metric.</div>
+      </div>
+      <div class="pipe-center">
+        <div class="pipe-icon shared">σ</div>
+      </div>
+      <div class="pipe-cell cool-cell" data-pipe>
+        <div class="pipe-title cool-t">Arithmetic</div>
+        <div class="pipe-main" style="color:var(--cool)">Galois conjugation σ</div>
+        <div class="pipe-detail">σ(a + bω) = a + bω̅. σ² = 1. Complex conjugation in ℤ[ω].</div>
+      </div>
+    </div>
+
+    <div class="pipe-arrow"><div></div><div class="pipe-arrow-center"><span class="pipe-arrow-glyph">↓</span></div><div></div></div>
+
+    <!-- Stage 3: Local Spectral Data -->
+    <div class="stage-label">Stage 3 · Local Spectral Data</div>
+    <div class="pipe-row">
+      <div class="pipe-cell warm-cell" data-pipe>
+        <div class="pipe-title warm-t">Geometry</div>
+        <div class="pipe-main" style="color:var(--warm)">±1 eigenvalues of ∗</div>
+        <div class="pipe-detail">Curvature splits: F = F₊ + F₋. Self-dual vs anti-self-dual at each point.</div>
+      </div>
+      <div class="pipe-center">
+        <div class="pipe-icon shared">±</div>
+      </div>
+      <div class="pipe-cell cool-cell" data-pipe>
+        <div class="pipe-title cool-t">Arithmetic</div>
+        <div class="pipe-main" style="color:var(--cool)">χ₋₃(p) = ±1</div>
+        <div class="pipe-detail">Split (p ≡ 1 mod 3) or inert (p ≡ 2 mod 3) at each prime.</div>
+      </div>
+    </div>
+
+    <div class="pipe-arrow"><div></div><div class="pipe-arrow-center"><span class="pipe-arrow-glyph">↓</span></div><div></div></div>
+
+    <!-- Stage 4: Global Assembly -->
+    <div class="stage-label">Stage 4 · Global Assembly</div>
+    <div class="pipe-row">
+      <div class="pipe-cell warm-cell" data-pipe>
+        <div class="pipe-title warm-t">Geometry</div>
+        <div class="pipe-main" style="color:var(--warm)">∫<sub>M</sub> (‖F₊‖² − ‖F₋‖²)</div>
+        <div class="pipe-detail">Additive: integrate curvature over the manifold. Hirzebruch signature theorem.</div>
+      </div>
+      <div class="pipe-center">
+        <div class="pipe-icon shared">Σ</div>
+      </div>
+      <div class="pipe-cell cool-cell" data-pipe>
+        <div class="pipe-title cool-t">Arithmetic</div>
+        <div class="pipe-main" style="color:var(--cool)">∏<sub>p</sub> (1 − χ(p)p⁻ˢ)⁻¹</div>
+        <div class="pipe-detail">Multiplicative: Euler product over all primes. Dedekind zeta function.</div>
+      </div>
+    </div>
+
+    <div class="pipe-arrow"><div></div><div class="pipe-arrow-center"><span class="pipe-arrow-glyph">↓</span></div><div></div></div>
+
+    <!-- Stage 5: Invariant -->
+    <div class="stage-label">Stage 5 · Discrete Invariant</div>
+    <div class="pipe-row">
+      <div class="pipe-cell warm-cell" data-pipe>
+        <div class="pipe-title warm-t">Geometry</div>
+        <div class="pipe-main" style="color:var(--warm)">Signature τ(M)</div>
+        <div class="pipe-detail">Integer. Net asymmetry between self-dual and anti-self-dual sectors.</div>
+      </div>
+      <div class="pipe-center">
+        <div class="pipe-icon shared">ℤ</div>
+      </div>
+      <div class="pipe-cell cool-cell" data-pipe>
+        <div class="pipe-title cool-t">Arithmetic</div>
+        <div class="pipe-main" style="color:var(--cool)">Class number h<sub>K</sub></div>
+        <div class="pipe-detail">Integer. For ℚ(ω): h = 1. Local contributions balance — no global obstruction.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ ACT 3: THE PROJECTOR DECOMPOSITION ════════ -->
+<section class="section" data-anim>
+  <h2>Involutions split worlds in two</h2>
+  <p>
+    Any involution I (satisfying I² = 1) in a ℚ-algebra produces orthogonal idempotent projectors:
+  </p>
+
+  <div class="math-block">
+    <div class="math-label">The Universal Projector Formula</div>
+    <div class="math-big">P<sub>±</sub> = <sup>1 ± I</sup>&frasl;<sub>2</sub></div>
+    <div style="margin-top:0.5rem; font-size:0.85rem; color:var(--text-dim)">
+      P²<sub>±</sub> = P<sub>±</sub> &nbsp;&nbsp; P₊P₋ = 0 &nbsp;&nbsp; P₊ + P₋ = 1
+    </div>
+  </div>
+
+  <div class="split-viz">
+    <div class="split-block pos">
+      <div style="font-size:1.1rem; margin-bottom:0.3rem">V₊</div>
+      <div style="font-size:0.7rem; color:var(--warm-soft)">eigenvalue +1</div>
+    </div>
+    <div class="split-op">⊕</div>
+    <div class="split-block neg">
+      <div style="font-size:1.1rem; margin-bottom:0.3rem">V₋</div>
+      <div style="font-size:0.7rem; color:var(--cool-soft)">eigenvalue −1</div>
+    </div>
+    <div class="split-op">=</div>
+    <div class="split-block whole">
+      <div style="font-size:1.1rem; margin-bottom:0.3rem">V</div>
+      <div style="font-size:0.7rem">total space</div>
+    </div>
+  </div>
+
+  <p>
+    In geometry, this <em>always works</em>: the Hodge star produces a genuine eigenspace decomposition
+    Λ² = Λ²₊ ⊕ Λ²₋. In arithmetic, it works <strong>only when the algebra splits</strong>.
+  </p>
+
+  <div class="dual-row">
+    <div class="dual-card warm-card from-left" data-reveal>
+      <h4 style="color:var(--warm)">Split prime (χ = +1)</h4>
+      <div class="dual-formula" style="color:var(--cool)">K ⊗ ℚ<sub>p</sub> ≅ ℚ<sub>p</sub> × ℚ<sub>p</sub></div>
+      <ul class="dual-list">
+        <li>Product of fields → idempotents exist</li>
+        <li>e₁ = (1,0), e₂ = (0,1)</li>
+        <li>Galois involution swaps factors</li>
+        <li>Genuine ±1 eigenspace decomposition</li>
+      </ul>
+    </div>
+    <div class="dual-card cool-card from-right" data-reveal>
+      <h4 style="color:var(--cool)">Inert prime (χ = −1)</h4>
+      <div class="dual-formula" style="color:var(--warm)">K ⊗ ℚ<sub>p</sub> ≅ 𝔽<sub>p²</sub></div>
+      <ul class="dual-list">
+        <li>Remains a field → no nontrivial idempotents</li>
+        <li>e² = e ⟹ e = 0 or e = 1</li>
+        <li>Involution exists but can't be diagonalised</li>
+        <li>Eigenspaces remain coupled</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Quadratic reciprocity</strong> governs precisely when the local algebra splits — when the
+    involution can be realised as a genuine projector decomposition. The Legendre symbol (−3/p)
+    is the arithmetic test for diagonalisability.
+  </div>
+</section>
+
+<div class="pullquote" data-anim>
+  <span style="color:var(--warm)">Curvature eigenvalues</span> at each point.<br>
+  <span style="color:var(--cool)">Quadratic characters</span> at each prime.<br>
+  Same spectral data, different assemblies.
+</div>
+
+<!-- ════════ ACT 4: THE EISENSTEIN EXAMPLE ════════ -->
+<section class="section-wide" data-anim>
+  <h2>The Eisenstein integers: every step explicit</h2>
+  <p style="max-width:700px">
+    ℤ[ω] with ω = e<sup>2πi/3</sup> is the minimal working example. The norm a² − ab + b² defines
+    the involution σ(ω) = ω̅. The quadratic character χ₋₃(p) classifies every prime.
+    Here is the local spectral data, computed directly:
+  </p>
+
+  <div class="euler-grid" id="eulerGrid"></div>
+
+  <div style="display:flex; gap:2rem; justify-content:center; font-family:var(--mono); font-size:0.75rem; flex-wrap:wrap; margin-top:1rem">
+    <span><span style="color:var(--cool)">■</span> Split: p ≡ 1 (mod 3), χ = +1</span>
+    <span><span style="color:var(--warm)">■</span> Inert: p ≡ 2 (mod 3), χ = −1</span>
+    <span><span style="color:var(--amber)">■</span> Ramified: p = 3</span>
+  </div>
+
+  <p style="max-width:700px; margin-top:1.5rem">
+    Each split prime contributes two independent linear factors to the Euler product.
+    Each inert prime contributes one quadratic factor. The Euler product over all primes
+    assembles into ζ<sub>ℚ(ω)</sub>(s) = ζ(s) · L(s, χ₋₃), and the class number formula
+    yields h<sub>K</sub> = 1: perfect global balance.
+  </p>
+</section>
+
+<!-- ════════ ACT 5: ADDITIVE VS MULTIPLICATIVE ════════ -->
+<section class="section" data-anim>
+  <h2>Two assembly mechanisms</h2>
+  <p>
+    The local spectral data is the same <em>kind</em> of thing in both settings: ±1 eigenvalues
+    of an involution generated by a quadratic form. But the way this data is collected globally
+    is fundamentally different:
+  </p>
+
+  <div class="dual-row">
+    <div class="dual-card warm-card from-left" data-reveal>
+      <h4 style="color:var(--warm)">Additive Assembly</h4>
+      <div class="dual-formula" style="color:var(--warm)">τ(M) = <sup>1</sup>&frasl;<sub>12π²</sub> ∫<sub>M</sub> (‖F₊‖² − ‖F₋‖²)</div>
+      <ul class="dual-list">
+        <li>Integration sums local curvature</li>
+        <li>Hirzebruch signature theorem</li>
+        <li>Output: signature τ(M) ∈ ℤ</li>
+        <li>Measures net self-dual asymmetry</li>
+      </ul>
+    </div>
+    <div class="dual-card cool-card from-right" data-reveal>
+      <h4 style="color:var(--cool)">Multiplicative Assembly</h4>
+      <div class="dual-formula" style="color:var(--cool)">L(1, χ) = <sup>2π h<sub>K</sub></sup>&frasl;<sub>w<sub>K</sub>√|D|</sub></div>
+      <ul class="dual-list">
+        <li>Euler product multiplies local factors</li>
+        <li>Class number formula</li>
+        <li>Output: class number h<sub>K</sub> ∈ ℤ</li>
+        <li>Measures factorisation obstruction</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    For ℚ(ω), h<sub>K</sub> = 1. In geometric language, this is like a manifold whose signature vanishes —
+    the local spectral contributions <strong>balance perfectly</strong>. There is no net obstruction.
+  </div>
+</section>
+
+<!-- ════════ ACT 6: THE TWO EXCEPTIONAL FIELDS ════════ -->
+<section class="section" data-anim>
+  <h2>Why Gaussian and Eisenstein?</h2>
+  <p>
+    Among all imaginary quadratic fields ℚ(√D), exactly two are simultaneously cyclotomic,
+    Euclidean, equipped with extra units, and realised by maximally symmetric planar lattices:
+  </p>
+
+  <div class="dual-row">
+    <div class="dual-card warm-card from-left" data-reveal>
+      <h4 style="color:var(--warm)">Gaussian ℤ[i]</h4>
+      <div class="dual-formula" style="color:var(--warm)">N = a² + b²</div>
+      <ul class="dual-list">
+        <li>D = −1, discriminant −4</li>
+        <li>Square lattice, 4-fold symmetry</li>
+        <li>Units: {±1, ±i}</li>
+        <li>Split primes: p ≡ 1 (mod 4)</li>
+      </ul>
+    </div>
+    <div class="dual-card cool-card from-right" data-reveal>
+      <h4 style="color:var(--cool)">Eisenstein ℤ[ω]</h4>
+      <div class="dual-formula" style="color:var(--cool)">N = a² − ab + b²</div>
+      <ul class="dual-list">
+        <li>D = −3, discriminant −3</li>
+        <li>Hexagonal lattice, 6-fold symmetry</li>
+        <li>Units: {±1, ±ω, ±ω²}</li>
+        <li>Split primes: p ≡ 1 (mod 3)</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>
+    These are the two maximally symmetric quadratic geometries. In both, the full pipeline —
+    quadratic form → involution → spectral data → global invariant — is completely explicit.
+  </p>
+</section>
+
+<div class="pullquote" data-anim>
+  Primes are not particles. Frobenius is not helicity.<br>
+  The Euler product is not integration.<br>
+  But the architecture that connects them is the same.
+</div>
+
+<!-- ════════ ACT 7: SYNTHESIS ════════ -->
+<section class="section" data-anim>
+  <div class="converge-box">
+    <div class="converge-tag">The Unifying Principle</div>
+    <h3>Quadratic-involutive architecture</h3>
+    <p>
+      The parallel lies not in identifying geometric and arithmetic objects, but in the
+      shared mechanism by which local spectral information produces global invariants:
+    </p>
+    <div class="math-block" style="margin:1.5rem 0 0.5rem; border:none; background:rgba(0,0,0,0.2)">
+      <div class="math-big" style="font-size:1.1rem">
+        <span style="color:var(--warm)">Quadratic form</span>
+        <span style="color:var(--text-muted)"> ⟹ </span>
+        <span style="color:var(--amber)">Involution</span>
+        <span style="color:var(--text-muted)"> ⟹ </span>
+        <span style="color:var(--text)">Local ±1 data</span>
+        <span style="color:var(--text-muted)"> ⟹ </span>
+        <span style="color:var(--cool)">Global invariant</span>
+      </div>
+    </div>
+    <p class="dim" style="margin-bottom:0; margin-top:1rem; color:var(--text-dim)">
+      In geometry, metricity generates chirality, chirality generates curvature eigenvalues,
+      integration yields the signature. In arithmetic, the norm generates conjugation,
+      conjugation generates quadratic characters, the Euler product yields the class number.
+      The quadratic form is the source of all subsequent structure.
+    </p>
+  </div>
+</section>
+
+<!-- ════════ FOOTER ════════ -->
+<footer>
+  <p>
+    Based on: <em>Quadratic Forms, Involutions, and Local-to-Global Spectral Assembly:
+    From Spin Geometry to Eisenstein Arithmetic</em>
+    — Lee McCulloch-James, Dwight School London, 2026.
+  </p>
+</footer>
+
+<script>
+// ═══════════════════════════════════════
+// EULER FACTOR VISUALISATION
+// ═══════════════════════════════════════
+function buildEulerGrid() {
+  const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+  const grid = document.getElementById('eulerGrid');
+
+  grid.innerHTML = primes.map(p => {
+    let type, chi, color, factor;
+    if (p === 3) {
+      type = 'ramified'; chi = '0'; color = 'var(--amber)';
+      factor = '(1−3⁻ˢ)⁻¹';
+    } else if (p % 3 === 1) {
+      type = 'split'; chi = '+1'; color = 'var(--cool)';
+      factor = `(1−${p}⁻ˢ)⁻²`;
+    } else {
+      type = 'inert'; chi = '−1'; color = 'var(--warm)';
+      factor = `(1−${p}⁻²ˢ)⁻¹`;
+    }
+    return `<div class="euler-cell ${type}">
+      <div class="euler-p" style="color:${color}">${p}</div>
+      <div class="euler-type" style="color:${color}">${type}</div>
+      <div class="euler-chi">χ = ${chi}</div>
+      <div style="font-family:var(--mono);font-size:0.65rem;color:var(--text-muted);margin-top:0.3rem">${factor}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// SCROLL ANIMATIONS
+// ═══════════════════════════════════════
+const sectionObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+
+const cardObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+}, { threshold: 0.15 });
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+window.addEventListener('load', () => {
+  buildEulerGrid();
+  document.querySelectorAll('[data-anim]').forEach(el => sectionObs.observe(el));
+  document.querySelectorAll('[data-reveal]').forEach(el => cardObs.observe(el));
+  document.querySelectorAll('[data-pipe]').forEach(el => cardObs.observe(el));
+});
+</script>
+</body>
+</html>
